@@ -127,6 +127,9 @@
         <version>1.4</version>
         <configuration>
           <yarnVersion>v0.23.2</yarnVersion>
+          <nodeDownloadRoot>${node.download.root}</nodeDownloadRoot>
+          <yarnDownloadRoot>${yarn.download.root}</yarnDownloadRoot>
+          <npmDownloadRoot>${npm.download.root}</npmDownloadRoot>
           <workingDirectory>${ui.directory}</workingDirectory>
           <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
           <!-- setting npm_config_tmp environment variable is a workaround for

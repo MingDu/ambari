@@ -42,6 +42,9 @@
         <configuration>
           <nodeVersion>${node.version}</nodeVersion>
           <yarnVersion>${yarn.version}</yarnVersion>
+          <nodeDownloadRoot>${node.download.root}</nodeDownloadRoot>
+          <yarnDownloadRoot>${yarn.download.root}</yarnDownloadRoot>
+          <npmDownloadRoot>${npm.download.root}</npmDownloadRoot>
           <workingDirectory>${project.build.directory}/webapp-build</workingDirectory>
           <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
           <!-- setting npm_config_tmp environment variable is a workaround for

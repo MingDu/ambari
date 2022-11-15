@@ -52,6 +52,9 @@
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
     <skipSurefireTests>false</skipSurefireTests>
+    <node.download.root>https://registry.npmmirror.com/nodejs</node.download.root>
+    <npm.download.root>http://registry.npmmirror.com/npm</npm.download.root>
+    <yarn.download.root>https://mirrors.huaweicloud.com/yarn/</yarn.download.root>
   </properties>
 
   <licenses>
