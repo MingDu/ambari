@@ -126,6 +126,7 @@
           <group>Development</group>
           <disabled>true</disabled>
           <description>Maven Recipe: RPM Package.</description>
+          <sourceEncoding>UTF-8</sourceEncoding>
           <mappings/>
         </configuration>
       </plugin>
