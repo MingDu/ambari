@@ -1,0 +1,206 @@
+{
+  "HBASE": {
+    "service": [
+      {
+        "name": "hbase_regionserver_process_percent",
+        "label": "Percent RegionServers Available",
+        "description": "当可用的RegionServer 服务百分比达到阈值时, 触发告警. 该结果聚合RegionServer 的所有检测结果.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "hbase_regionserver_process",
+          "reporting": {
+            "ok": {
+              "text": "受影响: [{1}], 总共: [{0}]"
+            },
+            "warning": {
+              "text": "受影响: [{1}], 总共: [{0}]",
+              "value": 10
+            },
+            "critical": {
+              "text": "受影响: [{1}], 总共: [{0}]",
+              "value": 30
+            },
+            "units" : "%",
+            "type": "PERCENT"
+          }
+        }
+      }
+    ],
+    "HBASE_MASTER": [
+      {
+        "name": "hbase_master_process",
+        "label": "HBase Master Process",
+        "description": "当无法确定HBase Master运行状态时, 将触发告警. 单位:秒.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "PORT",
+          "uri": "{{hbase-site/hbase.master.port}}",
+          "default_port": 60000,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - 响应耗时{0:.3f}s, 端口{1}"
+            },
+            "warning": {
+              "text": "TCP OK - 响应耗时{0:.3f}s, 端口{1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "连接失败: 从{0} 连接至 {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "hbase_master_cpu",
+        "label": "HBase Master CPU Utilization",
+        "description": "当HBase Master CPU 使用率达到阈值时, 触发告警, 通过连接 HBase Master JMX Servlet获取SystemCPULoad 属性. 阈值设定为百分比.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hbase-site/hbase.master.info.port}}",
+            "default_port": 60010,
+            "connection_timeout": 5.0,
+            "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}",
+            "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+          },
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, 负载 {0:.1%}"
+            },
+            "warning": {
+              "text": "{1} CPU, 负载 {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "{1} CPU, 负载 {0:.1%}",
+              "value": 250
+            },
+            "units" : "%",
+            "type": "PERCENT"
+          },
+          "jmx": {
+            "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+            ],
+            "value": "{0} * 100"
+          }
+        }
+      },
+      {
+        "name": "hbase_master_heap_usage",
+        "label": "HBase Master Heap用量",
+        "description": "HBase Master JMXServlet获取MemHeapUsedM和MemHeapMaxM. 阈值为百分比.",
+        "interval": 5,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hbase-site/hbase.master.info.port}}",
+            "default_port": 60010,
+            "connection_timeout": 5.0,
+            "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}",
+            "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+          },
+          "reporting": {
+            "ok": {
+              "text": "Used Heap:[{2:.0f}%, {0} MB], Max Heap: {1} MB"
+            },
+            "warning": {
+              "text": "Used Heap:[{2:.0f}%, {0} MB], Max Heap: {1} MB",
+              "value": 80
+            },
+            "critical": {
+              "text": "Used Heap:[{2:.0f}%, {0} MB], Max Heap: {1} MB",
+              "value": 90
+            },
+            "units" : "%",
+            "type": "PERCENT"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=HBase,name=JvmMetrics/MemHeapUsedM",
+              "Hadoop:service=HBase,name=JvmMetrics/MemHeapMaxM"
+            ],
+            "value": "100.0 - (({1} - {0})/{1} * 100.0)"
+          }
+        }
+      },
+      {
+        "name": "hbase_master_gc_time",
+        "label": "HBase Master GC时间",
+        "description": "HBase Master JMXServlet获取GcTimeMillis. 单位: 秒.",
+        "interval": 5,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hbase-site/hbase.master.info.port}}",
+            "default_port": 60010,
+            "connection_timeout": 5.0,
+            "kerberos_principal": "{{hbase-site/hbase.security.authentication.spnego.kerberos.principal}}",
+            "kerberos_keytab": "{{hbase-site/hbase.security.authentication.spnego.kerberos.keytab}}"
+          },
+          "reporting": {
+            "ok": {
+              "text": "GC 时间 {2}秒, GC数量 {1}"
+            },
+            "warning": {
+              "text": "GC 时间 {2}秒, GC数量 {1}",
+              "value": 300
+            },
+            "critical": {
+              "text": "GC 时间 {2}秒, GC数量 {1}",
+              "value": 600
+            },
+            "units" : "s"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=HBase,name=JvmMetrics/GcTimeMillis",
+              "Hadoop:service=HBase,name=JvmMetrics/GcCount"
+            ],
+            "value": "{0} / 1000"
+          }
+        }
+      }
+    ],
+    "HBASE_REGIONSERVER": [
+      {
+        "name": "hbase_regionserver_process",
+        "label": "HBase RegionServer Process",
+        "description": "当无法确定HBase RegionServer 运行状态时, 将触发告警. 单位:秒.",
+        "interval": 5,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{hbase-site/hbase.regionserver.info.port}}",
+          "default_port": 60030,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - 响应耗时{0:.3f}s, 端口{1}"
+            },
+            "warning": {
+              "text": "TCP OK - 响应耗时{0:.3f}s, 端口{1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "连接失败: 从{0} 连接至 {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ]
+  }
+}
