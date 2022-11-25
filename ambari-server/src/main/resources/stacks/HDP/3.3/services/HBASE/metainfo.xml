@@ -21,7 +21,9 @@
     <service>
       <name>HBASE</name>
       <displayName>HBase</displayName>
-      <comment>非关系型分布式数据库, 提供配置管理和同步服务</comment>
+      <comment>Non-relational distributed database and centralized service for configuration management &amp;
+        synchronization
+      </comment>
       <!-- For Alpha-1 release, it will be version 1.1.2. -->
       <version>2.5.1</version>
       <components>
@@ -69,7 +71,6 @@
                 <timeout>600</timeout>
               </commandScript>
             </customCommand>
-
           </customCommands>
         </component>
 
@@ -197,7 +198,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,uos20</osFamily>
+          <osFamily>debian7,debian9,ubuntu12,ubuntu14,ubuntu16,ubuntu18</osFamily>
           <packages>
             <package>
               <name>hbase-${stack_version}</name>

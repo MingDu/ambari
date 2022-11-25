@@ -22,7 +22,7 @@
 <configuration supports_final="false" supports_adding_forbidden="false">
  <property>
     <name>hbase_log_maxfilesize</name>
-    <value>512</value>
+    <value>256</value>
     <description>The maximum size of backup file before the log is rotated</description>
     <display-name>HBase Log: backup file size</display-name>
     <value-attributes>
@@ -32,7 +32,7 @@
  </property>
  <property>
       <name>hbase_log_maxbackupindex</name>
-      <value>30</value>
+      <value>20</value>
       <description>The number of backup files</description>
       <display-name>HBase Log: # of backup files</display-name>
       <value-attributes>
@@ -43,7 +43,7 @@
  </property>
  <property>
     <name>hbase_security_log_maxfilesize</name>
-    <value>512</value>
+    <value>256</value>
     <description>The maximum size of security backup file before the log is rotated</description>
     <display-name>HBase Security Log: backup file size</display-name>
     <value-attributes>
@@ -53,7 +53,7 @@
  </property>
  <property>
       <name>hbase_security_log_maxbackupindex</name>
-      <value>30</value>
+      <value>20</value>
       <description>The number of security backup files</description>
       <display-name>HBase Security Log: # of backup files</display-name>
       <value-attributes>
@@ -99,15 +99,14 @@ log4j.threshold=ALL
 #
 # Daily Rolling File Appender
 #
-log4j.appender.DRFA=org.apache.log4j.RollingFileAppender
+log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender
 log4j.appender.DRFA.File=${hbase.log.dir}/${hbase.log.file}
 
 # Rollver at midnight
-#log4j.appender.DRFA.DatePattern=.yyyy-MM-dd
+log4j.appender.DRFA.DatePattern=.yyyy-MM-dd
 
 # 30-day backup
-log4j.appender.DRFA.MaxFileSize=512MB
-log4j.appender.DRFA.MaxBackupIndex=30
+#log4j.appender.DRFA.MaxBackupIndex=30
 log4j.appender.DRFA.layout=org.apache.log4j.PatternLayout
 
 # Pattern format: Date LogLevel LoggerName LogMessage
@@ -135,7 +134,7 @@ hbase.security.log.maxfilesize={{hbase_security_log_maxfilesize}}MB
 hbase.security.log.maxbackupindex={{hbase_security_log_maxbackupindex}}
 log4j.appender.RFAS=org.apache.log4j.RollingFileAppender
 log4j.appender.RFAS.File=${hbase.log.dir}/${hbase.security.log.file}
-log4j.appender.RFAS.MaxFileSize=${hbase.security.log.maxfilesize}MB
+log4j.appender.RFAS.MaxFileSize=${hbase.security.log.maxfilesize}
 log4j.appender.RFAS.MaxBackupIndex=${hbase.security.log.maxbackupindex}
 log4j.appender.RFAS.layout=org.apache.log4j.PatternLayout
 log4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n

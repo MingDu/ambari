@@ -55,8 +55,8 @@
   </property>
   <property>
     <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
-    <value>{{kde_log_path}}/hbase/audit/hdfs/spool</value>
-    <description>{{kde_log_path}}/hbase/audit/hdfs/spool</description>
+    <value>/var/log/hbase/audit/hdfs/spool</value>
+    <description>/var/log/hbase/audit/hdfs/spool</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -104,8 +104,8 @@
   </property>
   <property>
     <name>xasecure.audit.destination.solr.batch.filespool.dir</name>
-    <value>{{kde_log_path}}/hbase/audit/solr/spool</value>
-    <description>{{kde_log_path}}/hbase/audit/solr/spool</description>
+    <value>/var/log/hbase/audit/solr/spool</value>
+    <description>/var/log/hbase/audit/solr/spool</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>

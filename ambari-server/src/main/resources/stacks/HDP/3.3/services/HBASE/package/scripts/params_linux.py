@@ -49,9 +49,6 @@ config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
-# kde unified log path
-kde_log_path = config['configurations']['cluster-env']['kde_log_path']
-
 stack_name = status_params.stack_name
 agent_stack_retry_on_unavailability = config['ambariLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
@@ -120,8 +117,6 @@ java64_home = config['ambariLevelParams']['java_home']
 java_version = expect("/ambariLevelParams/java_version", int)
 
 log_dir = config['configurations']['hbase-env']['hbase_log_dir']
-log_dir = log_dir if not log_dir. __contains__('{{kde_log_path}}') else log_dir.replace \
-  ('{{kde_log_path}}',kde_log_path) if not log_dir.startswith('/') else log_dir.replace('/{{kde_log_path}}',kde_log_path)
 java_io_tmpdir = default("/configurations/hbase-env/hbase_java_io_tmpdir", "/tmp")
 master_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_master_heapsize'])
 
@@ -129,6 +124,8 @@ regionserver_heapsize = ensure_unit_for_memory(config['configurations']['hbase-e
 regionserver_xmn_max = config['configurations']['hbase-env']['hbase_regionserver_xmn_max']
 regionserver_xmn_percent = expect("/configurations/hbase-env/hbase_regionserver_xmn_ratio", float)
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
+
+parallel_gc_threads = expect("/configurations/hbase-env/hbase_parallel_gc_threads", int)
 
 hbase_regionserver_shutdown_timeout = expect('/configurations/hbase-env/hbase_regionserver_shutdown_timeout', int, 30)
 
@@ -139,7 +136,7 @@ has_phoenix = len(phoenix_hosts) > 0
 underscored_version = stack_version_unformatted.replace('.', '_')
 dashed_version = stack_version_unformatted.replace('.', '-')
 if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
-  phoenix_package = format("phoenix_{underscored_version}_*")
+  phoenix_package = format("phoenix_{underscored_version}-*")
 elif OSCheck.is_ubuntu_family():
   phoenix_package = format("phoenix-{dashed_version}-.*")
 
@@ -158,12 +155,19 @@ has_ganglia_server = not len(ganglia_server_hosts) == 0
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+set_instanceId = "false"
+if 'cluster-env' in config['configurations'] and \
+    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
+metric_collector_port = None
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -177,9 +181,6 @@ if has_metric_collector:
   metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
   metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
   metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
-  host_in_memory_aggregation = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
-  host_in_memory_aggregation_port = default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888)
-
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
@@ -206,6 +207,9 @@ service_check_data = get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 
 if security_enabled:
+  zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+  zk_principal_user = zk_principal_name.split('/')[0]
+  zk_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client')
   _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   master_jaas_princ = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
   master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
@@ -223,10 +227,12 @@ if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
   kinit_cmd_master = format("{kinit_path_local} -kt {master_keytab_path} {master_jaas_princ};")
   master_security_config = format("-Djava.security.auth.login.config={hbase_conf_dir}/hbase_master_jaas.conf")
+  hbase_decommission_auth_config = "--auth-as-server"
 else:
   kinit_cmd = ""
   kinit_cmd_master = ""
   master_security_config = ""
+  hbase_decommission_auth_config = ""
 
 #log4j.properties
 # HBase log4j settings
@@ -454,18 +460,3 @@ if 'viewfs-mount-table' in config['configurations']:
   if 'content' in mount_table and mount_table['content'].strip():
     mount_table_xml_inclusion_file_full_path = os.path.join(hbase_conf_dir, xml_inclusion_file_name)
     mount_table_content = mount_table['content']
-
-# backup
-# local_disk remote_disk local_hdfs remote_hdfs cos ks3
-dist_type = config['commandParams']['dist_type']
-local_disk = config['commandParams']['local_disk']
-local_hdfs = config['commandParams']['local_hdfs']
-remote_hdfs = config['commandParams']['remote_hdfs']
-namenode_ip = config['commandParams']['namenode_ip']
-yarn_queue = config['commandParams']['yarn_queue']
-dist_path = config['commandParams']['dist_path']
-user = config['commandParams']['user']
-password = config['commandParams']['password']
-port = config['commandParams']['port']
-host = config['commandParams']['host']
-tablename = config['commandParams']['tablename']

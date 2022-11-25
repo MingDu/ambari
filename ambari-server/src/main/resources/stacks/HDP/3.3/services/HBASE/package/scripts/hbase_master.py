@@ -36,7 +36,7 @@ import os
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from ambari_commons.constants import SERVICE
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File, Directory
+
 
 class HbaseMaster(Script):
   def configure(self, env):
@@ -165,7 +165,6 @@ class HbaseMasterDefault(HbaseMaster):
   def get_pid_files(self):
     import status_params
     return [status_params.hbase_master_pid_file]
-
 
 if __name__ == "__main__":
   HbaseMaster().execute()
