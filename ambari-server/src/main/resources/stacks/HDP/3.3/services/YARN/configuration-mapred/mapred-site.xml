@@ -376,12 +376,12 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
-    <name>mapreduce.application.framework.path</name>
-    <value>/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework</value>
-    <description/>
-    <on-ambari-upgrade add="false"/>
-  </property>
+<!--  <property>-->
+<!--    <name>mapreduce.application.framework.path</name>-->
+<!--    <value>/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework</value>-->
+<!--    <description/>-->
+<!--    <on-ambari-upgrade add="false"/>-->
+<!--  </property>-->
   <property>
     <name>mapreduce.am.max-attempts</name>
     <value>2</value>
